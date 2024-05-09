@@ -1,0 +1,47 @@
+{
+  "name": "spree",
+  "private": true,
+  "engines": {
+    "node": ">=v18.16.0"
+  },
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint && manypkg check",
+    "lint:fix": "turbo lint:fix && manypkg fix",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\" --ignore-path .gitignore",
+    "type-check": "turbo type-check",
+    "db:generate": "turbo db:generate",
+    "db:push": "turbo db:push db:generate",
+    "clean": "git clean -xdf node_modules",
+    "clean:workspaces": "turbo clean"
+  },
+  "dependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
+    "@manypkg/cli": "^0.20.0",
+    "@prisma/client": "^5.0.0",
+    "@spree/eslint-config": "^0.1.0",
+    "@types/prettier": "^2.7.2",
+    "eslint": "^8.38.0",
+    "prettier": "^2.8.7",
+    "prettier-plugin-tailwindcss": "^0.2.7",
+    "prisma": "^5.0.0",
+    "react-native-dropdown-select-list": "^2.0.4",
+    "react-native-easy-content-loader": "^0.3.2",
+    "react-native-gifted-chat": "^2.4.0",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
+    "turbo": "^1.10.12",
+    "typescript": "^4.9.4"
+  },
+  "workspaces": [
+    "apps/expo",
+    "apps/nextjs",
+    "packages/db",
+    "packages/config/*"
+  ],
+  "resolutions": {
+    "@types/react": "17.0.2",
+    "@types/react-dom": "17.0.2"
+  }
+}

@@ -1,0 +1,356 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
+}
+
+model User {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Clerk
+    externalId         String @unique
+    externalAttributes Json
+
+    // Stripe
+    stripeCustomerId String? @unique
+
+    email      String          @unique
+    numSales   Int             @default(0)
+    selling    Listing[]       @relation("SellerToListing")
+    likes      Like[]
+    dislikes   Dislike[]
+    cartItems  Cart[]
+    savedItems SavedForLater[]
+    followers  User[]          @relation("Followers")
+    following  User[]          @relation("Followers")
+
+    purchased Order[]
+    orderLine OrderLine[]
+    suborder  SubOrder[]
+
+    notifications        Notification[]
+    notificationsEnabled Boolean        @default(false)
+
+    // Chat
+    sentMessages     Message[] @relation("SellerToBuyer")
+    receivedMessages Message[] @relation("BuyerToSeller")
+
+    // Billing details
+    name    String  @default("")
+    city    String  @default("")
+    country String  @default("")
+    phone   String  @default("")
+    state   String  @default("")
+    street1 String  @default("")
+    street2 String?
+    street3 String?
+    zip     String  @default("")
+
+    // Profile
+    username   String @default("") @db.VarChar(20)
+    profilePic String @default("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNIXcKKztPArzu0iDlr_jmpzHB-vHIV8hVS8gkEWV2Ng&s")
+    bio        String @default("") @db.VarChar(500)
+    filters    String @default("{\"gender\": \"U\", \"maxPrice\": 9007199254740991, \"types\": [], \"sizes\": [] }") @db.VarChar(500)
+
+    tags UserStyleTag[]
+}
+
+model Listing {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    seller            User               @relation("SellerToListing", fields: [sellerId], references: [id], onDelete: Cascade)
+    sellerId          String
+    listingType       String             @default("Clothes") @db.VarChar(50)
+    size              String             @default("S")
+    price             Decimal            @db.Decimal(10, 2)
+    description       String             @db.VarChar(500)
+    saveForLaterCount Int                @default(0)
+    imagePaths        ListingImagePath[]
+    archived          Boolean            @default(false)
+    tags              StyleTag[]
+    status            ListingStatus      @default(STAGING)
+    likes             Like[]
+    dislikes          Dislike[]
+    cart              Cart[]
+    savedForLater     SavedForLater[]
+    reports           ReportListing[]
+    gender            Gender
+    weight            Decimal            @default(0)
+    weightUnit        WeightUnit         @default(OZ)
+
+    orderLine OrderLine[]
+    Message   Message[]
+
+    @@index([sellerId])
+}
+
+enum Gender {
+    U
+    M
+    F
+}
+
+enum WeightUnit {
+    OZ
+    LB
+}
+
+model Message {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    content String @db.VarChar(500)
+
+    sender   User   @relation(name: "SellerToBuyer", fields: [senderId], references: [id])
+    senderId String
+
+    recipient   User   @relation(name: "BuyerToSeller", fields: [recipientId], references: [id])
+    recipientId String
+
+    listing   Listing? @relation(fields: [listingId], references: [id])
+    listingId String?
+
+    @@index([senderId])
+    @@index([recipientId])
+    @@index([listingId])
+}
+
+model Order {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    paymentIntent String              @unique
+    paymentStatus OrderPaymentStatus? @default(REQUIRES_PAYMENT_METHOD)
+    // replace with paymentstatus
+    charged       Boolean             @default(false)
+    total         Decimal
+    purchaser     User                @relation(fields: [purchaserId], references: [id], onDelete: Cascade)
+    purchaserId   String
+
+    suborders SubOrder[]
+
+    @@index([purchaserId])
+}
+
+model SubOrder {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    order          Order?      @relation(fields: [orderId], references: [id])
+    orderId        String?
+    seller         User        @relation(fields: [sellerId], references: [id])
+    lines          OrderLine[]
+    sellerId       String
+    shippingCost   Decimal     @default(0)
+    shippoObjectId String      @unique
+    shippoLabelUrl String      @default("") @db.VarChar(500)
+
+    @@index([orderId])
+}
+
+model Notification {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    viewedAt  DateTime @updatedAt
+
+    message          String
+    notificationType String  @default("GENERAL") @db.VarChar(20)
+    viewed           Boolean @default(false)
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    @@index([userId])
+}
+
+model OrderLine {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    price      Decimal
+    weight     Decimal
+    listing    Listing   @relation(fields: [listingId], references: [id])
+    listingId  String
+    seller     User      @relation(fields: [sellerId], references: [id])
+    sellerId   String
+    subOrder   SubOrder? @relation(fields: [subOrderId], references: [id])
+    subOrderId String?
+
+    @@index([listingId])
+    @@index([sellerId])
+    @@index([subOrderId])
+}
+
+enum OrderPaymentStatus {
+    // The PaymentIntent needs an attached PaymentMethod before it can progress.
+    REQUIRES_PAYMENT_METHOD
+    // A PaymentMethod was attached and the PaymentIntent needs to be confirmed.
+    REQUIRES_CONFIRMATION
+    // After confirming, further action is required. Likely a 3DS check.
+    REQUIRES_ACTION
+    // The payment is being processed, this status will automatically transfer to a new state without requiring your input.
+    PROCESSING
+    // A special state only seen if your PaymentIntent is in manual confirmation mode. The PaymentIntent needs to be instructed to capture the funds.
+    REQUIRES_CAPTURE
+    // The payment has succeeded. This is an end state.
+    SUCCEEDED
+    // The payment was canceled. This is an end state.
+    CANCELED
+
+    FAILED
+}
+
+model StripeEvent {
+    id               String   @id @unique
+    api_version      String?
+    data             Json
+    request          Json?
+    type             String
+    object           String
+    account          String?
+    created          DateTime
+    livemode         Boolean
+    pending_webhooks Int
+}
+
+model ReportListing {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    listingId String
+    reason    String  @db.VarChar(255)
+
+    @@index([listingId])
+}
+
+model ListingImagePath {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    path      String
+    listingId String
+
+    @@index([listingId])
+}
+
+enum ListingSize {
+    XS
+    S
+    M
+    L
+    XL
+    XXL
+}
+
+enum ListingStatus {
+    STAGING
+    CHECKOUT
+    SOLD
+}
+
+model UserStyleTag {
+    id String @id @default(uuid())
+
+    tag    String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String
+
+    @@index([userId])
+}
+
+model StyleTag {
+    id String @id @default(uuid())
+
+    tag       String
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    listingId String
+
+    @@index([listingId])
+}
+
+model Like {
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    userId    String
+    listingId String
+
+    @@id([userId, listingId])
+    @@index([userId])
+    @@index([listingId])
+}
+
+model Dislike {
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    userId    String
+    listingId String
+
+    @@id([userId, listingId])
+    @@index([userId])
+    @@index([listingId])
+}
+
+model Cart {
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    userId    String
+    listingId String
+
+    @@id([userId, listingId])
+    @@index([userId])
+    @@index([listingId])
+}
+
+model SavedForLater {
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    userId    String
+    listingId String
+
+    @@id([userId, listingId])
+    @@index([userId])
+    @@index([listingId])
+}
+
+model Newsletter {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+
+    email String @unique @db.VarChar(50)
+}
+
+model ContactMessage {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+
+    email     String @db.VarChar(50)
+    firstName String @db.VarChar(50)
+    lastName  String @db.VarChar(50)
+    message   String @db.VarChar(500)
+}

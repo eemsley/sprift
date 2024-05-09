@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 100 900;
+  font-display: block;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url("/fonts/Inter-roman.var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 100 900;
+  font-display: block;
+  font-style: italic;
+  font-named-instance: "Italic";
+  src: url("/fonts/Inter-italic.var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "SatoshiLight";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Satoshi/Satoshi-Light.otf");
+}
+@font-face {
+  font-family: "SatoshiRegular";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Satoshi/Satoshi-Regular.otf");
+}
+@font-face {
+  font-family: "SatoshiMedium";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Satoshi/Satoshi-Medium.otf");
+}
+@font-face {
+  font-family: "SatoshiBold";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Satoshi/Satoshi-Bold.otf");
+}
+@font-face {
+  font-family: "SatoshiBlack";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Satoshi/Satoshi-Black.otf");
+}
+@font-face {
+  font-family: "GeneralSansLight";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/GeneralSans/GeneralSans-Light.otf");
+}
+@font-face {
+  font-family: "GeneralSansRegular";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/GeneralSans/GeneralSans-Regular.otf");
+}
+@font-face {
+  font-family: "GeneralSansMedium";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/GeneralSans/GeneralSans-Medium.otf");
+}
+@font-face {
+  font-family: "GeneralSansSemibold";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/GeneralSans/GeneralSans-Semibold.otf");
+}
+@font-face {
+  font-family: "GeneralSansBold";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/GeneralSans/GeneralSans-Bold.otf");
+}
+@font-face {
+  font-family: "ItimRegular";
+  font-weight: 100 500 900;
+  font-display: block;
+  font-style: light;
+  src: url("../../../expo/assets/fonts/Itim/Itim-Regular.ttf");
+}
+#__next {
+  min-height: 100%;
+}
